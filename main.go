@@ -7,15 +7,19 @@ import (
 	"log"
 	"os"
 	"strconv"
+	"time"
 	"transac_api/server"
 )
 
 func main() {
 	logger := log.Default()
-	host, dbPort, user, password, dbName := os.Getenv("DB_HOST"), os.Getenv("DB_PORT"), os.Getenv("DB_USER"), os.Getenv("DB_PASSWORD"), os.Getenv("DB_NAME")
-	connectionString := fmt.Sprintf("host=%s port=%s user=%s "+
-		"password=%s dbname=%s sslmode=disable",
-		host, dbPort, user, password, dbName)
+	host := os.Getenv("DB_HOST")
+	dbPort := os.Getenv("DB_PORT")
+	user := os.Getenv("DB_USER")
+	password := os.Getenv("DB_PASSWORD")
+	dbName := os.Getenv("DB_NAME")
+	connectionString := fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=disable",
+		user, password, host, dbPort, dbName)
 	db, err := connectToDb("postgres", connectionString)
 	if err != nil {
 		logger.Fatalf("Could not connect to db, err: %s", err.Error())
@@ -33,14 +37,25 @@ func main() {
 }
 
 func connectToDb(driverName, dataSourceName string) (*sql.DB, error) {
-	db, err := sql.Open(driverName, dataSourceName)
+	retries := 5
+	var db *sql.DB
+	var err error
+	for i := 0; i < retries; i++ {
+		db, err = sql.Open(driverName, dataSourceName)
+		if err != nil {
+			time.Sleep(time.Second)
+			continue
+		}
+		err = db.Ping()
+		if err != nil {
+			time.Sleep(time.Second)
+			continue
+		}
+		return db, nil
+	}
+	db, err = sql.Open(driverName, dataSourceName)
 	if err != nil {
 		return nil, err
 	}
-	err = db.Ping()
-	if err != nil {
-		_ = db.Close()
-		return nil, err
-	}
-	return db, nil
+	return db, db.Ping()
 }

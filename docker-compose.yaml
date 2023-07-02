@@ -2,13 +2,22 @@ version: '3.3'
 
 services:
   transac_api:
+    depends_on:
+     - db
     image: transac_api:latest
     ports:
       - "8000:8000"
     environment:
-      - DB_HOST="jump-database"
-      - DB_PASSWORD=password
+      - DB_HOST=db
       - DB_PORT=5432
+      - DB_PASSWORD=password
       - DB_USER=jump
       - DB_NAME=jump
       - PORT=8000
+
+  db:
+    image: jump-database:latest
+    ports:
+      - "5432:5432"
+    expose:
+      - "5432"

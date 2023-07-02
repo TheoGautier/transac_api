@@ -5,5 +5,5 @@ function build() {
 }
 
 function run() {
-  docker-compose up transac_api
+  docker-compose up
 }

@@ -21,7 +21,7 @@ type Server struct {
 }
 
 func MustMakeNewServer(port int, db *sql.DB, logger *log.Logger) *Server {
-	engine := gin.New()
+	engine := gin.Default()
 	server := &Server{db: db, engine: engine, port: port, logger: logger}
 	server.addHealthRoute()
 	userService := user.MustMakeService(db)
@@ -44,5 +44,5 @@ func (s Server) addHealthRoute() {
 }
 
 func health(c *gin.Context) {
-	c.JSON(http.StatusOK, nil)
+	c.JSON(http.StatusNoContent, nil)
 }

@@ -1,0 +1,165 @@
+openapi: 3.0.0
+info:
+  title: transac_api web server
+  description: |-
+    transac_api implements an API interface to the jump database users, invoice and transactions management.
+
+  contact:
+    email: t.gautierginer@gmail.com
+  version: 1.0.0
+paths:
+  /health:
+    get:
+      summary: Get server health
+      tags:
+        - health
+      responses:
+        '204':
+          description: Server is healthy
+  /users:
+    get:
+      summary: Get users
+      description: Get users
+      tags:
+        - user
+      responses:
+        '200':
+          description: users
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/User"
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ServerError"
+  /invoice:
+    post:
+      summary: Add invoice to user
+      description: Add invoice to user
+      tags:
+        - invoice
+      requestBody:
+        description: add invoice request
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AddInvoiceRequest"
+      responses:
+        '204':
+          description: Invoice added successfully
+        '400':
+          description: Bad request error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BadRequestError"
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ServerError"
+  /transaction:
+    post:
+      summary: Add paid transaction for invoice
+      description: Add paid transaction for invoice
+      tags:
+        - transaction
+      requestBody:
+        description: add transaction request
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AddTransactionRequest"
+      responses:
+        '204':
+          description: Transaction treated successfully
+        '400':
+          description: Bad request error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BadRequestError"
+        '404':
+          description: Invoice not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BadRequestError"
+        '422':
+          description: Invoice already paid
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BadRequestError"
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ServerError"
+components:
+  schemas:
+    User:
+      type: object
+      properties:
+        user_id:
+          type: integer
+          format: int64
+        first_name:
+          type: string
+        last_name:
+          type: string
+        balance:
+          type: number
+          format: double
+      required:
+        - user_id
+        - first_name
+        - last_name
+        - balance
+    AddInvoiceRequest:
+      type: object
+      properties:
+        user_id:
+          type: integer
+          format: int64
+        amount:
+          type: number
+          format: double
+        label:
+          type: string
+      required:
+        - user_id
+        - amount
+        - label
+    AddTransactionRequest:
+      type: object
+      properties:
+        invoice_id:
+          type: integer
+          format: int64
+        amount:
+          type: number
+          format: double
+        reference:
+          type: string
+      required:
+        - invoice_id
+        - amount
+        - reference
+    ServerError:
+      type: object
+      properties:
+        message:
+          type: string
+    BadRequestError:
+      type: object
+      properties:
+        message:
+          type: string
